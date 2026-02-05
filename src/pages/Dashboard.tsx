@@ -4,11 +4,19 @@
  import StatCard from "@/components/ui/stat-card";
  import PageHeader from "@/components/ui/page-header";
  import { Button } from "@/components/ui/button";
+ import { supabase } from '../lib/supabase';
+ import { useEffect, useState } from 'react';
  
  interface QuickAction {
    label: string;
    href: string;
    testId: string;
+ }
+ 
+ interface DashboardStats {
+   totalUniversities: number;
+   totalUsers: number;
+   recentActivity: number;
  }
  
  const quickActions: QuickAction[] = [
@@ -19,12 +27,44 @@
  ];
  
  const Dashboard = () => {
-   // Mock stats - replace with real data
-   const stats = {
-     totalUniversities: 24,
-     totalUsers: 8,
-     recentActivity: 156,
-   };
+   const [stats, setStats] = useState<DashboardStats>({
+     totalUniversities: 0,
+     totalUsers: 0,
+     recentActivity: 0,
+   });
+   const [loading, setLoading] = useState(true);
+ 
+   useEffect(() => {
+     const fetchStats = async () => {
+       try {
+         const { count: universitiesCount } = await supabase
+           .from('universities')
+           .select('*', { count: 'exact', head: true });
+ 
+         const { count: usersCount } = { count: 0 }; // Temporarily set to 0 to prevent 404 error, as 'users' table not found.
+ 
+         setStats({
+           totalUniversities: universitiesCount || 0,
+           totalUsers: usersCount || 0,
+           recentActivity: 0, // Placeholder as no clear source in admin-dashboard example
+         });
+       } catch (error) {
+         console.error('Error fetching dashboard stats:', error);
+       } finally {
+         setLoading(false);
+       }
+     };
+ 
+     fetchStats();
+   }, []);
+ 
+   if (loading) {
+     return (
+       <div className="flex items-center justify-center h-64">
+         <div className="text-gray-600">Loading dashboard...</div>
+       </div>
+     );
+   }
  
    return (
      <div className="space-y-8">

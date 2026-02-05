@@ -1,4 +1,4 @@
- import { useState } from "react";
+ import { useEffect, useState } from "react";
  import { Plus, Pencil, Trash2 } from "lucide-react";
  import PageHeader from "@/components/ui/page-header";
  import { Button } from "@/components/ui/button";
@@ -15,42 +15,95 @@ import { motion } from "framer-motion";
  import AddUniversityModal from "@/components/modals/AddUniversityModal";
  import EditUniversityModal from "@/components/modals/EditUniversityModal";
  import type { University } from "@/types/University";
- 
- // Mock data - replace with actual Supabase query
- const mockUniversities: University[] = [
-   { id: 1, name: "University of the Philippines", location: "Quezon City", website: "https://up.edu.ph" },
-   { id: 2, name: "Ateneo de Manila University", location: "Quezon City", website: "https://ateneo.edu" },
-   { id: 3, name: "De La Salle University", location: "Manila", website: "https://dlsu.edu.ph" },
-   { id: 4, name: "Polytechnic University of the Philippines", location: "Manila", website: "https://pup.edu.ph" },
- ];
+ import { supabase } from '../lib/supabase';
  
  const Universities = () => {
-   const [universities, setUniversities] = useState<University[]>(mockUniversities);
+   const [universities, setUniversities] = useState<University[]>([]);
+   const [loading, setLoading] = useState<boolean>(true);
    const [error, setError] = useState<string | null>(null);
    const [showAddModal, setShowAddModal] = useState(false);
    const [showEditModal, setShowEditModal] = useState(false);
    const [currentUniversity, setCurrentUniversity] = useState<University | null>(null);
  
-   const handleAddUniversity = (newUniversity: Omit<University, "id">) => {
-     const id = Math.max(...universities.map((u) => u.id), 0) + 1;
-     setUniversities([...universities, { ...newUniversity, id }]);
+   const fetchUniversities = async () => {
+     setLoading(true);
+     const { data, error } = await supabase
+       .from('universities')
+       .select('*');
+ 
+     if (error) {
+       setError(error.message);
+       setUniversities([]);
+     } else {
+       setUniversities(data || []);
+     }
+     setLoading(false);
    };
  
-   const handleUpdateUniversity = (updatedUniversity: University) => {
-     setUniversities(
-       universities.map((u) => (u.id === updatedUniversity.id ? updatedUniversity : u))
-     );
+   useEffect(() => {
+     fetchUniversities();
+   }, []);
+ 
+   const handleAddUniversity = async (newUniversity: Omit<University, "id">) => {
+     const { data, error } = await supabase
+       .from('universities')
+       .insert([newUniversity])
+       .select();
+ 
+     if (error) {
+       console.error('Error adding university:', error);
+       setError('Failed to add university: ' + error.message);
+     } else {
+       console.log('University added successfully:', data);
+       fetchUniversities();
+     }
    };
  
-   const handleDeleteUniversity = (id: number) => {
+   const handleUpdateUniversity = async (updatedUniversity: University) => {
+     const { data, error } = await supabase
+       .from('universities')
+       .update(updatedUniversity)
+       .eq('id', updatedUniversity.id)
+       .select();
+ 
+     if (error) {
+       console.error('Error updating university:', error);
+       setError('Failed to update university: ' + error.message);
+     } else {
+       console.log('University updated successfully:', data);
+       fetchUniversities();
+     }
+   };
+ 
+   const handleDeleteUniversity = async (id: number) => {
      if (!window.confirm("Are you sure you want to delete this university?")) return;
-     setUniversities(universities.filter((u) => u.id !== id));
+     
+     const { error } = await supabase
+       .from('universities')
+       .delete()
+       .eq('id', id);
+ 
+     if (error) {
+       console.error('Error deleting university:', error);
+       setError('Failed to delete university: ' + error.message);
+     } else {
+       console.log('University deleted successfully.');
+       fetchUniversities();
+     }
    };
  
    const openEditModal = (university: University) => {
      setCurrentUniversity(university);
      setShowEditModal(true);
    };
+ 
+   if (loading) {
+     return (
+       <div className="flex items-center justify-center h-64">
+         <div className="text-gray-600">Loading universities...</div>
+       </div>
+     );
+   }
  
    return (
      <div className="space-y-6">

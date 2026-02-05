@@ -26,20 +26,23 @@
      setError(null);
      setScrapeResult(null);
  
-     // Simulate scraping - replace with actual API call
      try {
-       await new Promise((resolve) => setTimeout(resolve, 2000));
-       setScrapeResult({
-         admission_status: "Open",
-         academic_semester_start: "August 2025",
-         academic_semester_end: "December 2025",
-         academic_application_deadline: "July 15, 2025",
-         admission_deadline: "July 30, 2025",
-         academic_status: "Active",
-         supabase_status: "Updated",
+       const response = await fetch("/api/run-pup-scraper", {
+         method: "POST",
+         headers: {
+           "Content-Type": "application/json",
+         },
        });
-     } catch (e) {
-       setError("Failed to run scraper. Please try again.");
+ 
+       if (!response.ok) {
+         const errorData = await response.json();
+         throw new Error(errorData.detail || "Failed to run scraper.");
+       }
+ 
+       const data: ScrapeResult = await response.json();
+       setScrapeResult(data);
+     } catch (e: any) {
+       setError(e.message || "Failed to run scraper. Please try again.");
      } finally {
        setLoading(false);
      }
