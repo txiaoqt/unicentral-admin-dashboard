@@ -95,6 +95,7 @@
                      icon={Activity}
                      description="Actions this week"
                      testId="stat-activity"
+                     className="hidden md:block" // Add hidden on small screens, block on medium and up
                    />       </div>
  
        {/* Quick Actions */}
