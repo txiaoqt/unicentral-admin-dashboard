@@ -1,5 +1,6 @@
  import { motion } from "framer-motion";
  import { LucideIcon } from "lucide-react";
+ import { clsx } from "clsx"; // Import clsx
  
  interface StatCardProps {
    title: string;
@@ -11,16 +12,17 @@
      isPositive: boolean;
    };
    testId?: string;
+   className?: string; // Add className prop
  }
  
- const StatCard = ({ title, value, icon: Icon, description, trend, testId }: StatCardProps) => {
+ const StatCard = ({ title, value, icon: Icon, description, trend, testId, className }: StatCardProps) => { // Destructure className
    return (
      <motion.div
        initial={{ opacity: 0, y: 20 }}
        animate={{ opacity: 1, y: 0 }}
        transition={{ duration: 0.3 }}
        data-testid={testId}
-       className="stat-card bg-card border border-border rounded-xl p-6 group"
+       className={clsx("stat-card bg-card border border-border rounded-xl p-6 group", className)} // Apply className
      >
        <div className="flex items-start justify-between">
          <div className="space-y-2">
