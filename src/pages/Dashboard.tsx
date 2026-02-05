@@ -76,30 +76,26 @@
  
        {/* Stats Grid */}
        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-         <StatCard
-           title="Total Universities"
-           value={stats.totalUniversities}
-           icon={GraduationCap}
-           description="Active institutions"
-           trend={{ value: 12, isPositive: true }}
-           testId="stat-universities"
-         />
-         <StatCard
+                   <StatCard
+                     title="Total Universities"
+                     value={stats.totalUniversities}
+                     icon={GraduationCap}
+                     description="Active institutions"
+                     testId="stat-universities"
+                   />         <StatCard
            title="Total Admins"
            value={stats.totalUsers}
            icon={Users}
            description="Active administrators"
            testId="stat-users"
          />
-         <StatCard
-           title="Recent Activity"
-           value={stats.recentActivity}
-           icon={Activity}
-           description="Actions this week"
-           trend={{ value: 8, isPositive: true }}
-           testId="stat-activity"
-         />
-       </div>
+                   <StatCard
+                     title="Recent Activity"
+                     value={stats.recentActivity}
+                     icon={Activity}
+                     description="Actions this week"
+                     testId="stat-activity"
+                   />       </div>
  
        {/* Quick Actions */}
        <motion.div
