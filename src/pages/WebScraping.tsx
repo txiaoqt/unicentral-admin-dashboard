@@ -16,29 +16,53 @@
    error?: string;
  }
  
+ interface ScraperConfig {
+   id: number;
+   name: string;
+   description: string;
+   endpoint: string;
+ }
+ 
+ const scrapers: ScraperConfig[] = [
+   {
+     id: 1,
+     name: "PUP Admissions Scraper",
+     description: "Scrapes admission data from PUP's website and updates the database.",
+     endpoint: "/api/run-pup-scraper"
+   },
+   {
+     id: 2,
+     name: "TUP Admissions Scraper", 
+     description: "Scrapes admission data from TUP's website and updates the database.",
+     endpoint: "/api/run-scraper/2"
+   }
+ ];
+ 
  const WebScraping = () => {
    const [scrapeResult, setScrapeResult] = useState<ScrapeResult | null>(null);
    const [loading, setLoading] = useState(false);
    const [error, setError] = useState<string | null>(null);
- 
-   const handleScrape = async () => {
+   const [activeScraper, setActiveScraper] = useState<string>("");
+
+   const handleScrape = async (scraper: ScraperConfig) => {
      setLoading(true);
      setError(null);
      setScrapeResult(null);
- 
+     setActiveScraper(scraper.name);
+
      try {
-       const response = await fetch("/api/run-pup-scraper", {
+       const response = await fetch(scraper.endpoint, {
          method: "POST",
          headers: {
            "Content-Type": "application/json",
          },
        });
- 
+
        if (!response.ok) {
          const errorData = await response.json();
          throw new Error(errorData.detail || "Failed to run scraper.");
        }
- 
+
        const data: ScrapeResult = await response.json();
        setScrapeResult(data);
      } catch (e: any) {
@@ -56,39 +80,48 @@
          testId="web-scraping-title"
        />
  
-       {/* Scraper Card */}
-       <motion.div
-         initial={{ opacity: 0, y: 20 }}
-         animate={{ opacity: 1, y: 0 }}
-         className="bg-card border border-border rounded-xl p-6"
-       >
-         <div className="flex items-start justify-between gap-4">
-           <div className="flex items-start gap-4">
-             <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center">
-               <Globe className="w-5 h-5 text-muted-foreground" />
+       {/* Scraper Cards */}
+       <div className="grid gap-6">
+         {scrapers.map((scraper) => (
+           <motion.div
+             key={scraper.id}
+             initial={{ opacity: 0, y: 20 }}
+             animate={{ opacity: 1, y: 0 }}
+             className="bg-card border border-border rounded-xl p-6"
+           >
+             <div className="flex items-start justify-between gap-4">
+               <div className="flex items-start gap-4">
+                 <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center">
+                   <Globe className="w-5 h-5 text-muted-foreground" />
+                 </div>
+                 <div>
+                   <h3 className="font-medium text-foreground">{scraper.name}</h3>
+                   <p className="text-sm text-muted-foreground mt-1">
+                     {scraper.description}
+                   </p>
+                 </div>
+               </div>
+               <Button 
+                 onClick={() => handleScrape(scraper)} 
+                 disabled={loading}
+                 variant={activeScraper === scraper.name ? "default" : "outline"}
+               >
+                 {loading && activeScraper === scraper.name ? (
+                   <>
+                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                     Scraping...
+                   </>
+                 ) : (
+                   <>
+                     <Play className="w-4 h-4 mr-2" />
+                     Run Scraper
+                   </>
+                 )}
+               </Button>
              </div>
-             <div>
-               <h3 className="font-medium text-foreground">PUP Admissions Scraper</h3>
-               <p className="text-sm text-muted-foreground mt-1">
-                 Scrapes admission data from PUP's website and updates the database.
-               </p>
-             </div>
-           </div>
-           <Button onClick={handleScrape} disabled={loading}>
-             {loading ? (
-               <>
-                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                 Scraping...
-               </>
-             ) : (
-               <>
-                 <Play className="w-4 h-4 mr-2" />
-                 Run Scraper
-               </>
-             )}
-           </Button>
-         </div>
-       </motion.div>
+           </motion.div>
+         ))}
+       </div>
  
        {/* Loading State */}
        {loading && (
